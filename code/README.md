@@ -1,8 +1,8 @@
-# PRD 04: Constrained Learning MCP
+# Constrained Learning MCP
 
-Status: container acceptance verified on 2026-10-11 after Docker recovered. Checks passed 77 Python tests, 21 Rego tests, mutation, lint/format/mypy; actual private-OPA stdio discovery and 11 calls passed. Runtime Python 3.12.11, UID 10001. PRD 05 is now active. MCP is an integration protocol, not an authorization grant.
+Status: container acceptance verified on 2026-10-11 after Docker recovered. Checks passed 77 Python tests, 21 Rego tests, mutation, lint/format/mypy; actual private-OPA stdio discovery and 11 calls passed. Runtime Python 3.12.11, UID 10001. The identity-delegation workshop is now active. MCP is an integration protocol, not an authorization grant.
 
-This project owns only PRD 04. It depends on the PRD 03 runtime/check images, which depend on PRDs 01 and 02. Earlier application sources are not copied here. The user approved adding prerequisite assessment/evidence business services in this milestone because preceding milestones expose no allowed write services.
+This project owns only the constrained-tools workshop. It depends on the resource and tenant isolation runtime/check images, which depend on the foundation and OPA authorization workshops. Earlier application sources are not copied here. The user approved adding prerequisite assessment/evidence business services in this milestone because preceding milestones expose no allowed write services.
 
 ## Run With Compose
 
@@ -13,7 +13,7 @@ bash scripts/check.sh
 docker compose run --rm -T --no-deps mcp
 ```
 
-The gate builds upstream dependencies and both PRD 04 images, runs 77 combined Python tests, 21 Rego tests, the inherited tenant-predicate mutation check, lint/format/type checks, waits for private OPA health, then runs the official MCP client and server as real stdio subprocesses inside the runtime container. These container steps are configured, **not yet executed successfully** for PRD 04.
+The gate builds upstream dependencies and both constrained-tools images, runs 77 combined Python tests, 21 Rego tests, the inherited tenant-predicate mutation check, lint/format/type checks, waits for private OPA health, then runs the official MCP client and server as real stdio subprocesses inside the runtime container. These container steps are configured, **not yet executed successfully** for this workshop.
 
 `bash scripts/run.sh` builds dependencies and starts the private OPA service before launching a stdio server. There is no HTTP MCP listener or published port. Use an MCP client rather than typing ordinary text into stdio. Open this `code` directory as the VS Code workspace to use [.vscode/mcp.json](.vscode/mcp.json); OPA and the built image must already be available.
 
@@ -51,7 +51,7 @@ This generation command is configured but not container-verified. The equivalent
 ## Security Boundaries
 
 - [mcp/learning_tools/server.py](mcp/learning_tools/server.py) attaches configured demo identity in trusted pre-validation middleware. Handlers are thin and use the business service; model arguments and request metadata cannot set identity.
-- [mcp/learning_tools/services.py](mcp/learning_tools/services.py) performs asynchronous, non-cached, strict OPA decisions. Reads use unchanged PRD 02 policy `1.0.0`; writes use the PRD 04-only policy `1.1.0`. Malformed, oversized, wrong-version, wrong-reason and unavailable decisions fail closed.
+- [mcp/learning_tools/services.py](mcp/learning_tools/services.py) performs asynchronous, non-cached, strict OPA decisions. Reads use the unchanged OPA authorization policy `1.0.0`; writes use this workshop's policy `1.1.0`. Malformed, oversized, wrong-version, wrong-reason and unavailable decisions fail closed.
 - The narrow write policy authorizes the authenticated learner's progress aggregate. [mcp/learning_tools/repository.py](mcp/learning_tools/repository.py) independently checks active membership and the requested course in that learner's scoped progress, inside the mutation transaction.
 - Idempotency binds tenant, actor, action, key and intent hash. Same intent returns the original receipt; conflicting intent fails. Replays must still pass current authorization/membership. Evidence and its receipt commit together.
 - Calls have a 2-second wall deadline, at most 100 calls per process, 30 calls/minute, two concurrent calls, 1,024-byte argument objects and 4,096-byte serialized application results. Search examines at most 20 approved fixture records. Writes are capped at 100 per actor in the repository. No automatic tool retry is performed.
@@ -77,6 +77,6 @@ Exact executed commands and the Docker blocker are in [../../docs/security-test-
 
 ## Limits And Next Gate
 
-SQLite, idempotency records and budgets are volatile and process-local. A new stdio process resets state; this is not durable evidence storage, globally coordinated rate limiting, or distributed idempotency. Demo credential resolution and fixed `learning-api` workload metadata are not cryptographic identity, OAuth, delegation or mTLS. PRDs 05/06 own those controls. No production readiness, hosted CI, scans, SBOM or signing claim is made.
+SQLite, idempotency records and budgets are volatile and process-local. A new stdio process resets state; this is not durable evidence storage, globally coordinated rate limiting, or distributed idempotency. Demo credential resolution and fixed `learning-api` workload metadata are not cryptographic identity, OAuth, delegation or mTLS. The identity-delegation and Istio workload-security workshops own those controls. No production readiness, hosted CI, scans, SBOM or signing claim is made.
 
-Recover Docker Desktop, then run `bash scripts/check.sh`. Only after its image/runtime/protocol gate passes should PRD 04 be marked complete and PRD 05 begin. This work did not restart Docker, prune resources, change Kubernetes contexts, initialize Git, or touch previous workshops/book sources.
+Recover Docker Desktop, then run `bash scripts/check.sh`. Only after its image/runtime/protocol gate passes should the constrained-tools workshop be marked complete and the identity-delegation workshop begin. This work did not restart Docker, prune resources, change Kubernetes contexts, initialize Git, or touch previous workshops/book sources.
