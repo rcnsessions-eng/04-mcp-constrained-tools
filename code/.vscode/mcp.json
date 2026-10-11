@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "prd04-learning": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["compose", "--project-directory", "${workspaceFolder}", "run", "--rm", "-T", "--no-deps", "mcp"],
+      "env": {"LEARNING_MCP_CREDENTIAL": "demo-learner-red"}
+    }
+  }
+}

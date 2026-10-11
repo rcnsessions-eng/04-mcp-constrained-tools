@@ -1,0 +1,31 @@
+[project]
+name = "constrained-learning-tools"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["mcp==2.3.0", "httpx==0.28.1", "pydantic==2.14.0"]
+
+[tool.ruff]
+line-length = 96
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["learning_tools"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+cache_dir = "/tmp/mypy-prd04"
+
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider"
+
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["mcp"]
+include = ["learning_tools*"]

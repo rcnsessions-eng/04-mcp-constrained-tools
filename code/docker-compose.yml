@@ -1,0 +1,53 @@
+name: zero-trust-constrained-tools
+services:
+  mcp:
+    image: zero-trust-constrained-tools-mcp:0.1.0
+    build:
+      context: ../..
+      dockerfile: 04-mcp-constrained-tools/code/Dockerfile
+      target: runtime
+    stdin_open: true
+    environment:
+      LEARNING_MCP_CREDENTIAL: "${LEARNING_MCP_CREDENTIAL:-demo-learner-red}"
+      LEARNING_DEMO_CREDENTIALS_JSON: "${LEARNING_DEMO_CREDENTIALS_JSON:-}"
+      LEARNING_OPA_URL: http://opa:8181
+    depends_on: [opa]
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+  opa:
+    image: openpolicyagent/opa:1.21.1-static@sha256:4675ab04ad1627f74741d2d9c5142698c79e18b7b09f192587d31d6dba20838e
+    command: [run, --server, --addr=0.0.0.0:8181, --log-level=error, /read-policy, /write-policy]
+    volumes:
+      - ../../02-opa-authorization/code/policy/rego:/read-policy:ro
+      - ./policy/rego:/write-policy:ro
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    healthcheck:
+      test: [CMD, /opa, eval, --fail, --format=raw, 'http.send({"method":"GET","url":"http://127.0.0.1:8181/health","timeout":"1s"}).status_code == 200']
+      interval: 2s
+      timeout: 2s
+      retries: 10
+      start_period: 2s
+  checks:
+    image: zero-trust-constrained-tools-checks:0.1.0
+    build:
+      context: ../..
+      dockerfile: 04-mcp-constrained-tools/code/Dockerfile
+      target: checks
+    profiles: [tools]
+    read_only: true
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: "${LEARNING_SUBNET:-10.218.44.0/24}"
